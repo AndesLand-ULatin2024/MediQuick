@@ -1,0 +1,11 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "MediQuick",
+            "database": "${workspaceFolder:MediQuick}/db.sqlite3"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}
