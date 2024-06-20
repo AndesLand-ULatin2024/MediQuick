@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from .serializer import PacienteSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
@@ -8,25 +9,26 @@ from .logic.logicPaciente import createPaciente, getPacientes, getPacienteByDocu
 def create(request):
     if request.method == 'POST':
         try: 
-            valid, message = validateData(request.data)
-            if not valid:
-                return Response({'detail': message}, status=status.HTTP_400_BAD_REQUEST)
-            createPaciente(request.data)
-            return Response(request.data, status=status.HTTP_200_OK)
+            paciente = createPaciente(request.data)
+            serializer = PacienteSerializer(paciente)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 @api_view(['GET'])
 def pacientesList(request):
     if request.method == 'GET':
         pacientes = getPacientes()
-        return Response(pacientes, status=status.HTTP_200_OK)
+        serializer = PacienteSerializer(pacientes, many=True)
+        print(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 def pacienteByDocument(request, document):
     if request.method == 'GET':
         try:
             paciente = getPacienteByDocuemnt(document)
-            return Response(paciente, status=status.HTTP_200_OK)
+            serializer = PacienteSerializer(paciente)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 @api_view(['DELETE'])
@@ -47,7 +49,7 @@ def updatePaciente(request, document):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 #Additional Functions
-def validateData(data):
+"""def validateData(data):
     document = data.get('document', None)
     age = data.get('age', None)
     message = ''
@@ -68,4 +70,4 @@ def validateData(data):
             message += "The document number (cedula) must have 10 digits."
             valid = False
 
-    return valid, message if message else None
+    return valid, message if message else None"""
