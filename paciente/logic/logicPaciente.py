@@ -2,7 +2,7 @@ from ..models import Paciente
 
 def createPaciente(data):
     try:
-        return Paciente.objects.create(data)
+        return Paciente.objects.create(**data)
     except: 
         raise Exception({'error':'Error al crear Paciente'},404)
 
@@ -21,10 +21,11 @@ def deletePacienteByDocument(document):
     except:
         raise Exception({'error':'No fue posible borrar el Paciente'},404)
 
-def updatePacienteByDocument(data):
+def updatePacienteByDocument(document, data):
     try:
-        paciente = Paciente.objects.get(data['document'])
-        setattr(paciente, data)
+        paciente = Paciente.objects.get(document=document)
+        for key, value in data.items():
+            setattr(paciente, key, value)
         paciente.save()
         return paciente
     except:
