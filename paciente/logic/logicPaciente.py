@@ -9,9 +9,9 @@ def createPaciente(data):
 def getPacientes():
     return Paciente.objects.all().order_by('name')
 
-def getPacienteByDocuemnt(docuemnt):
+def getPacienteByDocuemnt(document):
     try:
-        return Paciente.objects.get(docuemnt=docuemnt)
+        return Paciente.objects.get(document=document)
     except:
         raise Exception({'error':'Hubo un error, el Paciente no existe'},404)
 
