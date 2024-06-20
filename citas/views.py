@@ -1,72 +1,71 @@
-from django.shortcuts import render
-from django.http import HttpResponseNotFound, JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
 import json
 from Analisis import conversacionResumen
-
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework import status
 from paciente.models import Paciente
 from .logic.logicCita import *
 
 
-@require_http_methods(["GET"])
+@api_view(["GET"])
 def citaList(request):
     citas = getCitas()
     citasList = [{"id": cita.id, "date": cita.date, "reason": cita.reason, "treatment": cita.treatment, "examsData": cita.examsData} for cita in citas]
-    return JsonResponse(citasList, safe=False)
+    return Response(citasList, status=status.HTTP_200_OK)
 
-@require_http_methods(["GET"])
+@api_view(["GET"])
 def citaDetail(request, pk):
     cita = getCitaByID(pk)
     cita_data = {"id": cita.id, "date": cita.date, "reason": cita.reason, "treatment": cita.treatment, "examsData": cita.examsData}
-    return JsonResponse(cita_data)
+    return Response(cita_data, status=status.HTTP_200_OK)
 
 @csrf_exempt
-@require_http_methods(["POST"])
+@api_view(["POST"])
 def citaCreate(request):
     try:
         data = json.loads(request.body)
         cita = createCita(data)
-        return JsonResponse({"id": cita.id, "date": cita.date, "reason": cita.reason, "treatment": cita.treatment, "examsData": cita.examsData})
+        return Response({"id": cita.id, "date": cita.date, "reason": cita.reason, "treatment": cita.treatment, "examsData": cita.examsData}, status=status.HTTP_202_ACCEPTED)
     except Exception as e:
-        return HttpResponseBadRequest(str(e))
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 @csrf_exempt
-@require_http_methods(["PUT"])
+@api_view(["PUT"])
 def citaUpdate(request, pk):
     try:
         data = json.loads(request.body)
         cita = updateCita(pk, data)
-        return JsonResponse({"id": cita.id, "date": cita.date, "reason": cita.reason, "treatment": cita.treatment, "examsData": cita.examsData})
+        return Response({"id": cita.id, "date": cita.date, "reason": cita.reason, "treatment": cita.treatment, "examsData": cita.examsData}, status=status.HTTP_202_ACCEPTED)
     except Exception as e:
-        return HttpResponseBadRequest(str(e))
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 @csrf_exempt
-@require_http_methods(["DELETE"])
+@api_view(["DELETE"])
 def citaDelete(request, pk):
     try:
         deleteCita(pk)
-        return JsonResponse({"status": "deleted"})
+        return Response({"status": "deleted"}, status=status.HTTP_202_ACCEPTED)
     except Exception as e:
-        return HttpResponseBadRequest(str(e))
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-@require_http_methods(["GET"])
+@api_view(["GET"])
 def citasByPacienteDocumento(request, documento):
     try:
         citas, paciente = getCitasByPacienteDocumento(documento)
         citasList = [{"id": cita.id, "date": cita.date, "reason": cita.reason, "treatment": cita.treatment, "examsData": cita.examsData} for cita in citas]
         citasList.append(paciente)
-        return JsonResponse(citasList, safe=False)
+        return Response(citasList, status=status.HTTP_200_OK)
     except Paciente.DoesNotExist:
-        return HttpResponseNotFound()
+        return Response({'error': str(e)}, status=status.HTTP_404_NOT_FOUND)
 
-@require_http_methods(["GET"])
+@api_view(["GET"])
 def obtenerResumen(request, documento):
     try:
         citas, paciente = getCitasByPacienteDocumento(documento)
         citasList = [{"id": cita.id, "date": cita.date, "reason": cita.reason, "treatment": cita.treatment, "examsData": cita.examsData} for cita in citas]
         citasList.append(paciente)
         respuesta = conversacionResumen(str(citasList))
-        return JsonResponse({"mensaje":respuesta})
+        return Response({"mensaje":respuesta},status=status.HTTP_200_OK)
     except Exception as e:
-        return HttpResponseBadRequest(str(e))
+        return Response({'error': str(e)}, status=status.HTTP_404_NOT_FOUND)
